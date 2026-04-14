@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef, NgZone } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { AiService } from '../../services/ai.service';
@@ -132,7 +132,11 @@ export class AiAssistantComponent implements AfterViewChecked {
 
   private shouldScroll = false;
 
-  constructor(private aiService: AiService) {
+  constructor(
+    private aiService: AiService,
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone,
+  ) {
     this.preguntasSugeridas = this.aiService.preguntasSugeridas;
   }
 
@@ -158,12 +162,17 @@ export class AiAssistantComponent implements AfterViewChecked {
     this.escribiendo = true;
     this.shouldScroll = true;
 
-    setTimeout(() => {
-      const respuesta = this.aiService.procesarPregunta(pregunta);
-      this.mensajes.push(respuesta);
-      this.escribiendo = false;
-      this.shouldScroll = true;
-    }, 800 + Math.random() * 700);
+    this.ngZone.runOutsideAngular(() => {
+      setTimeout(() => {
+        this.ngZone.run(() => {
+          const respuesta = this.aiService.procesarPregunta(pregunta);
+          this.mensajes.push(respuesta);
+          this.escribiendo = false;
+          this.shouldScroll = true;
+          this.cdr.detectChanges();
+        });
+      }, 800 + Math.random() * 700);
+    });
   }
 
   enviarSugerida(pregunta: string): void {
