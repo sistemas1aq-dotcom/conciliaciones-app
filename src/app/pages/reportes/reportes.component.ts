@@ -11,7 +11,7 @@ import { DuplicadoDetectado, ErrorBD } from '../../models/conciliacion.model';
     <div class="space-y-6">
       <div>
         <h1 class="text-2xl font-bold text-gray-900">Reportes</h1>
-        <p class="text-sm text-gray-500">Reportes de discrepancias, duplicados y errores</p>
+        <p class="text-sm text-gray-500">Discrepancias de inventario, duplicados y errores de BD</p>
       </div>
 
       <!-- Tabs -->
@@ -25,12 +25,12 @@ import { DuplicadoDetectado, ErrorBD } from '../../models/conciliacion.model';
       @if (tabActivo === 'discrepancias') {
         <div class="bg-white rounded-xl shadow-sm border border-gray-100">
           <div class="p-4 border-b border-gray-200">
-            <h3 class="font-semibold text-gray-700">Reporte de Discrepancias por Tipo</h3>
+            <h3 class="font-semibold text-gray-700">Discrepancias de Inventario por Tipo</h3>
           </div>
           <div class="p-4 space-y-4">
             @for (tipo of discrepanciasPorTipo; track tipo.tipo) {
               <div class="flex items-center gap-4">
-                <div class="w-32 text-sm text-gray-600 capitalize">{{ tipo.tipo.replace('_', ' ') }}</div>
+                <div class="w-40 text-sm text-gray-600">{{ etiquetaTipo(tipo.tipo) }}</div>
                 <div class="flex-1 bg-gray-100 rounded-full h-6 relative overflow-hidden">
                   <div class="h-full rounded-full flex items-center justify-end pr-2 transition-all duration-500"
                     [style.width.%]="tipo.cantidad / maxDiscrepancia * 100"
@@ -71,8 +71,8 @@ import { DuplicadoDetectado, ErrorBD } from '../../models/conciliacion.model';
                     <svg class="w-4 h-4 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/></svg>
                   </div>
                   <div>
-                    <p class="font-semibold text-amber-900">Código: {{ dup.codigo }}</p>
-                    <p class="text-xs text-amber-700">{{ dup.ocurrencias }} ocurrencias detectadas</p>
+                    <p class="font-semibold text-amber-900">{{ dup.codigo }} — {{ dup.nombreProducto }}</p>
+                    <p class="text-xs text-amber-700">{{ dup.ocurrencias }} registros con este código</p>
                   </div>
                 </div>
                 <span class="bg-amber-200 text-amber-800 text-xs px-2 py-1 rounded-full font-medium">Duplicado</span>
@@ -82,18 +82,18 @@ import { DuplicadoDetectado, ErrorBD } from '../../models/conciliacion.model';
                   <thead>
                     <tr class="text-gray-500 text-xs">
                       <th class="text-left pb-2">ID</th>
-                      <th class="text-left pb-2">Fecha</th>
-                      <th class="text-right pb-2">Monto</th>
-                      <th class="text-left pb-2">Fuente</th>
+                      <th class="text-left pb-2">Almacén</th>
+                      <th class="text-right pb-2">Cantidad</th>
+                      <th class="text-left pb-2">Lote</th>
                     </tr>
                   </thead>
                   <tbody>
                     @for (reg of dup.registros; track reg.id) {
                       <tr class="border-t border-gray-100">
                         <td class="py-2 font-mono text-xs">{{ reg.id }}</td>
-                        <td class="py-2">{{ reg.fecha }}</td>
-                        <td class="py-2 text-right font-mono">S/ {{ reg.monto.toFixed(2) }}</td>
-                        <td class="py-2">{{ reg.fuente }}</td>
+                        <td class="py-2">{{ reg.almacen }}</td>
+                        <td class="py-2 text-right font-mono">{{ reg.cantidad }}</td>
+                        <td class="py-2 font-mono text-xs">{{ reg.lote }}</td>
                       </tr>
                     }
                   </tbody>
@@ -138,9 +138,7 @@ import { DuplicadoDetectado, ErrorBD } from '../../models/conciliacion.model';
                     </div>
                   </div>
                   <p class="text-sm text-gray-600 mb-2">{{ error.descripcion }}</p>
-                  <div class="bg-gray-900 rounded-lg p-3 font-mono text-xs text-green-400 overflow-x-auto">
-                    {{ error.sugerencia }}
-                  </div>
+                  <div class="bg-gray-900 rounded-lg p-3 font-mono text-xs text-green-400 overflow-x-auto whitespace-pre-wrap">{{ error.sugerencia }}</div>
                 </div>
               </div>
             </div>
@@ -168,16 +166,29 @@ export class ReportesComponent implements OnInit {
     this.totalDiscrepancias = this.discrepanciasPorTipo.reduce((s, d) => s + d.cantidad, 0);
     this.maxDiscrepancia = Math.max(...this.discrepanciasPorTipo.map(d => d.cantidad), 1);
     const resumen = this.conciliacionService.getResumen();
-    this.tasaDiscrepancia = Math.round((resumen.discrepancias / resumen.totalProcesadas) * 10000) / 100;
+    this.tasaDiscrepancia = Math.round((resumen.discrepancias / resumen.totalProcesados) * 10000) / 100;
+  }
+
+  etiquetaTipo(tipo: string): string {
+    const map: Record<string, string> = {
+      cantidad: 'Dif. Cantidad',
+      peso: 'Dif. Peso',
+      codigo_duplicado: 'Código Duplicado',
+      sin_contrapartida: 'Sin Contrapartida',
+      lote_incorrecto: 'Lote Incorrecto',
+      ubicacion: 'Ubicación',
+    };
+    return map[tipo] || tipo;
   }
 
   getBarColor(tipo: string): string {
     const colors: Record<string, string> = {
-      monto: 'bg-red-500',
-      fecha: 'bg-amber-500',
-      duplicado: 'bg-purple-500',
+      cantidad: 'bg-red-500',
+      peso: 'bg-amber-500',
+      codigo_duplicado: 'bg-purple-500',
       sin_contrapartida: 'bg-blue-500',
-      codigo_erroneo: 'bg-orange-500',
+      lote_incorrecto: 'bg-orange-500',
+      ubicacion: 'bg-teal-500',
     };
     return colors[tipo] || 'bg-gray-500';
   }

@@ -12,11 +12,10 @@ Chart.register(...registerables);
   imports: [RouterLink],
   template: `
     <div class="space-y-6">
-      <!-- Header -->
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p class="text-sm text-gray-500">Resumen ejecutivo de conciliaciones</p>
+          <p class="text-sm text-gray-500">Resumen de conciliación de inventarios metalúrgicos</p>
         </div>
         <span class="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">Actualizado: {{ today }}</span>
       </div>
@@ -26,12 +25,12 @@ Chart.register(...registerables);
         <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
             </div>
             <span class="text-xs text-gray-400">Total</span>
           </div>
-          <p class="text-2xl font-bold text-gray-900">{{ resumen.totalProcesadas }}</p>
-          <p class="text-xs text-gray-500 mt-1">Conciliaciones procesadas</p>
+          <p class="text-2xl font-bold text-gray-900">{{ resumen.totalProcesados }}</p>
+          <p class="text-xs text-gray-500 mt-1">Items procesados</p>
         </div>
 
         <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
@@ -41,8 +40,8 @@ Chart.register(...registerables);
             </div>
             <span class="text-xs text-green-600 font-medium">{{ resumen.porcentajeCoincidencia }}%</span>
           </div>
-          <p class="text-2xl font-bold text-green-600">{{ resumen.conciliadas }}</p>
-          <p class="text-xs text-gray-500 mt-1">Conciliadas exitosamente</p>
+          <p class="text-2xl font-bold text-green-600">{{ resumen.conciliados }}</p>
+          <p class="text-xs text-gray-500 mt-1">Inventario coincide</p>
         </div>
 
         <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
@@ -53,7 +52,7 @@ Chart.register(...registerables);
             <span class="text-xs text-amber-600 font-medium">Pendientes</span>
           </div>
           <p class="text-2xl font-bold text-amber-600">{{ resumen.pendientes }}</p>
-          <p class="text-xs text-gray-500 mt-1">Por resolver</p>
+          <p class="text-xs text-gray-500 mt-1">Sin contrapartida</p>
         </div>
 
         <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
@@ -68,26 +67,26 @@ Chart.register(...registerables);
         </div>
       </div>
 
-      <!-- Montos -->
+      <!-- Peso -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="bg-gradient-to-r from-aquarius-600 to-aquarius-500 rounded-xl p-5 text-white shadow-lg">
-          <p class="text-xs opacity-80">Monto Total Banco</p>
-          <p class="text-xl font-bold mt-1">S/ {{ resumen.montoTotalBanco.toLocaleString() }}</p>
+          <p class="text-xs opacity-80">Peso Inventario Físico</p>
+          <p class="text-xl font-bold mt-1">{{ resumen.pesoTotalFisicoKg.toLocaleString() }} Kg</p>
         </div>
         <div class="bg-gradient-to-r from-aquarius-700 to-aquarius-600 rounded-xl p-5 text-white shadow-lg">
-          <p class="text-xs opacity-80">Monto Total Contable</p>
-          <p class="text-xl font-bold mt-1">S/ {{ resumen.montoTotalContable.toLocaleString() }}</p>
+          <p class="text-xs opacity-80">Peso en Sistema</p>
+          <p class="text-xl font-bold mt-1">{{ resumen.pesoTotalSistemaKg.toLocaleString() }} Kg</p>
         </div>
-        <div class="rounded-xl p-5 shadow-lg" [class]="resumen.diferenciaNeta > 0 ? 'bg-gradient-to-r from-red-600 to-red-500 text-white' : 'bg-gradient-to-r from-green-600 to-green-500 text-white'">
-          <p class="text-xs opacity-80">Diferencia Neta</p>
-          <p class="text-xl font-bold mt-1">S/ {{ Math.abs(resumen.diferenciaNeta).toLocaleString() }}</p>
+        <div class="rounded-xl p-5 shadow-lg" [class]="resumen.diferenciaPesoKg > 0 ? 'bg-gradient-to-r from-amber-600 to-amber-500 text-white' : 'bg-gradient-to-r from-red-600 to-red-500 text-white'">
+          <p class="text-xs opacity-80">Diferencia de Peso</p>
+          <p class="text-xl font-bold mt-1">{{ Math.abs(resumen.diferenciaPesoKg).toLocaleString() }} Kg</p>
         </div>
       </div>
 
       <!-- Charts -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 class="text-sm font-semibold text-gray-700 mb-4">Conciliaciones por Mes</h3>
+          <h3 class="text-sm font-semibold text-gray-700 mb-4">Conciliación por Mes</h3>
           <canvas #barChart></canvas>
         </div>
         <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
@@ -106,9 +105,9 @@ Chart.register(...registerables);
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
           <a routerLink="/conciliaciones" class="flex items-center gap-3 p-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer">
             <div class="w-8 h-8 bg-blue-200 rounded-lg flex items-center justify-center">
-              <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+              <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
             </div>
-            <span class="text-xs font-medium text-blue-700">Ver Conciliaciones</span>
+            <span class="text-xs font-medium text-blue-700">Ver Inventario</span>
           </a>
           <a routerLink="/reportes" class="flex items-center gap-3 p-3 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors cursor-pointer">
             <div class="w-8 h-8 bg-purple-200 rounded-lg flex items-center justify-center">
@@ -122,7 +121,7 @@ Chart.register(...registerables);
             </div>
             <span class="text-xs font-medium text-emerald-700">Asistente IA</span>
           </a>
-          <a routerLink="/conciliaciones" class="flex items-center gap-3 p-3 rounded-lg bg-amber-50 hover:bg-amber-100 transition-colors cursor-pointer">
+          <a routerLink="/reportes" class="flex items-center gap-3 p-3 rounded-lg bg-amber-50 hover:bg-amber-100 transition-colors cursor-pointer">
             <div class="w-8 h-8 bg-amber-200 rounded-lg flex items-center justify-center">
               <svg class="w-4 h-4 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
             </div>
@@ -159,7 +158,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       data: {
         labels: datos.map(d => d.mes),
         datasets: [
-          { label: 'Conciliadas', data: datos.map(d => d.conciliadas), backgroundColor: '#22c55e', borderRadius: 4 },
+          { label: 'Conciliados', data: datos.map(d => d.conciliados), backgroundColor: '#22c55e', borderRadius: 4 },
           { label: 'Discrepancias', data: datos.map(d => d.discrepancias), backgroundColor: '#ef4444', borderRadius: 4 },
           { label: 'Pendientes', data: datos.map(d => d.pendientes), backgroundColor: '#f59e0b', borderRadius: 4 },
         ],
@@ -176,9 +175,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     new Chart(this.doughnutChartRef.nativeElement, {
       type: 'doughnut',
       data: {
-        labels: ['Conciliadas', 'Discrepancias', 'Pendientes'],
+        labels: ['Conciliados', 'Discrepancias', 'Pendientes'],
         datasets: [{
-          data: [this.resumen.conciliadas, this.resumen.discrepancias, this.resumen.pendientes],
+          data: [this.resumen.conciliados, this.resumen.discrepancias, this.resumen.pendientes],
           backgroundColor: ['#22c55e', '#ef4444', '#f59e0b'],
           borderWidth: 0,
         }],

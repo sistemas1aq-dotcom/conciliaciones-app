@@ -7,7 +7,7 @@ import { AuthService } from '../../services/auth.service';
   template: `
     <header class="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0">
       <div class="flex items-center gap-3">
-        <h2 class="text-sm font-medium text-gray-600">Sistema de Conciliaciones Inteligente</h2>
+        <h2 class="text-sm font-medium text-gray-600">Conciliaciones de Inventarios Metalúrgicos</h2>
       </div>
       <div class="flex items-center gap-4">
         <div class="flex items-center gap-2">

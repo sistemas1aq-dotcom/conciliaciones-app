@@ -1,51 +1,63 @@
-export interface TransaccionBancaria {
-  id: string;
-  fecha: string;
-  referencia: string;
-  descripcion: string;
-  monto: number;
-  tipo: 'debito' | 'credito';
-  banco: string;
-  numeroCuenta: string;
+export interface ProductoInventario {
+  codigo: string;
+  nombre: string;
+  categoria: 'materia_prima' | 'producto_terminado' | 'insumo' | 'repuesto' | 'aleacion';
+  unidadMedida: string;
+  almacen: string;
 }
 
-export interface TransaccionContable {
+export interface RegistroFisico {
   id: string;
+  producto: ProductoInventario;
   fecha: string;
-  codigoAsiento: string;
-  descripcion: string;
-  monto: number;
-  tipo: 'debito' | 'credito';
-  cuentaContable: string;
-  centroCosto: string;
+  cantidadFisica: number;
+  pesoKg: number;
+  lote: string;
+  ubicacion: string;
+  responsable: string;
+}
+
+export interface RegistroSistema {
+  id: string;
+  producto: ProductoInventario;
+  fecha: string;
+  cantidadSistema: number;
+  pesoKg: number;
+  lote: string;
+  ultimoMovimiento: string;
+  tipoMovimiento: 'entrada' | 'salida' | 'ajuste' | 'transferencia';
 }
 
 export interface Conciliacion {
   id: string;
-  transaccionBancaria: TransaccionBancaria | null;
-  transaccionContable: TransaccionContable | null;
+  registroFisico: RegistroFisico | null;
+  registroSistema: RegistroSistema | null;
   estado: 'conciliado' | 'pendiente' | 'discrepancia';
-  diferencia: number;
+  diferenciaCantidad: number;
+  diferenciaPeso: number;
   fechaConciliacion: string;
   observacion: string;
-  tipoDiscrepancia?: 'monto' | 'fecha' | 'duplicado' | 'sin_contrapartida' | 'codigo_erroneo';
+  tipoDiscrepancia?: 'cantidad' | 'peso' | 'codigo_duplicado' | 'sin_contrapartida' | 'lote_incorrecto' | 'ubicacion';
 }
 
 export interface ResumenConciliacion {
-  totalProcesadas: number;
-  conciliadas: number;
+  totalProcesados: number;
+  conciliados: number;
   pendientes: number;
   discrepancias: number;
   porcentajeCoincidencia: number;
-  montoTotalBanco: number;
-  montoTotalContable: number;
-  diferenciaNeta: number;
+  totalItemsFisico: number;
+  totalItemsSistema: number;
+  pesoTotalFisicoKg: number;
+  pesoTotalSistemaKg: number;
+  diferenciaPesoKg: number;
 }
 
 export interface DuplicadoDetectado {
   codigo: string;
+  nombreProducto: string;
   ocurrencias: number;
-  registros: { id: string; fecha: string; monto: number; fuente: string }[];
+  registros: { id: string; almacen: string; cantidad: number; lote: string }[];
   sugerenciaCorreccion: string;
 }
 

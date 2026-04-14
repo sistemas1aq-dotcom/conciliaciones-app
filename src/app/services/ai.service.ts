@@ -10,36 +10,38 @@ export class AiService {
   readonly preguntasSugeridas = [
     '¿Cuántas equivocaciones en BD que no permitan correr más rápido?',
     'Prever y corregir la duplicidad de códigos',
-    '¿Cuáles son las principales discrepancias?',
-    '¿Qué transacciones tienen mayor riesgo de error?',
+    '¿Cuáles son las principales discrepancias de inventario?',
+    '¿Qué productos tienen mayor riesgo de faltante?',
     'Resumen de conciliaciones del mes',
-    '¿Qué patrones de error se repiten?',
-    '¿Cuántas conciliaciones hay pendientes?',
-    'Análisis de rendimiento de la base de datos',
-    '¿Qué bancos tienen más discrepancias?',
-    'Predicción de errores para el próximo mes',
+    '¿Qué patrones de error se repiten en almacén?',
+    '¿Cuántos items están pendientes de conciliar?',
+    '¿Qué almacenes tienen más discrepancias?',
+    '¿Cuál es la diferencia de peso total físico vs sistema?',
+    'Predicción de mermas para el próximo mes',
   ];
 
   procesarPregunta(pregunta: string): MensajeChat {
     const lower = pregunta.toLowerCase();
     let respuesta: { texto: string; datos?: any; tipo?: MensajeChat['tipo'] };
 
-    if (lower.includes('equivocacion') || lower.includes('bd') || lower.includes('correr') || lower.includes('rápido') || lower.includes('rapido') || lower.includes('rendimiento')) {
+    if (lower.includes('equivocacion') || lower.includes('bd') || lower.includes('correr') || lower.includes('rápido') || lower.includes('rapido') || lower.includes('rendimiento') || lower.includes('base de datos')) {
       respuesta = this.analizarErroresBD();
     } else if (lower.includes('duplici') || lower.includes('duplicado') || lower.includes('código') || lower.includes('codigo')) {
       respuesta = this.analizarDuplicados();
-    } else if (lower.includes('discrepancia') || lower.includes('principal')) {
+    } else if (lower.includes('discrepancia') || lower.includes('principal') || lower.includes('diferencia')) {
       respuesta = this.analizarDiscrepancias();
-    } else if (lower.includes('riesgo') || lower.includes('error')) {
+    } else if (lower.includes('riesgo') || lower.includes('faltante') || lower.includes('merma')) {
       respuesta = this.analizarRiesgos();
     } else if (lower.includes('resumen') || lower.includes('mes')) {
       respuesta = this.generarResumenMes();
-    } else if (lower.includes('patrón') || lower.includes('patron') || lower.includes('repite')) {
+    } else if (lower.includes('patrón') || lower.includes('patron') || lower.includes('repite') || lower.includes('error')) {
       respuesta = this.analizarPatrones();
     } else if (lower.includes('pendiente')) {
       respuesta = this.analizarPendientes();
-    } else if (lower.includes('banco')) {
-      respuesta = this.analizarPorBanco();
+    } else if (lower.includes('almacén') || lower.includes('almacen')) {
+      respuesta = this.analizarPorAlmacen();
+    } else if (lower.includes('peso')) {
+      respuesta = this.analizarPesos();
     } else if (lower.includes('predicción') || lower.includes('prediccion') || lower.includes('próximo') || lower.includes('proximo')) {
       respuesta = this.predecirErrores();
     } else {
@@ -64,7 +66,7 @@ export class AiService {
     return {
       texto: `🔍 **Análisis de Errores en BD que Impactan el Rendimiento**
 
-Se detectaron **${errores.length} problemas** en la base de datos:
+Se detectaron **${errores.length} problemas** en la base de datos del sistema de inventarios:
 
 🔴 **${altos.length} errores de impacto ALTO:**
 ${altos.map(e => `  • **${e.tipo}** en \`${e.tabla}\`: ${e.descripcion}
@@ -73,12 +75,13 @@ ${altos.map(e => `  • **${e.tipo}** en \`${e.tabla}\`: ${e.descripcion}
 🟡 **${medios.length} errores de impacto MEDIO:**
 ${medios.map(e => `  • **${e.tipo}** en \`${e.tabla}\`: ${e.descripcion}`).join('\n')}
 
-📊 **Impacto estimado en rendimiento:**
-- Los índices faltantes causan ~**40% más tiempo** en consultas
-- El tipo de dato incorrecto en "monto" causa **errores de comparación** y falsos positivos en conciliación
-- El bloqueo de tabla reduce la **concurrencia en 60%**
+📊 **Impacto estimado en rendimiento del inventario:**
+- El índice faltante en inventario_fisico causa **full table scan** en 120K+ registros, ralentizando búsquedas por código de producto
+- El tipo VARCHAR en peso_kg genera **comparaciones erróneas** ("95.5" > "1000.0" = TRUE), creando falsos positivos en conciliación
+- El LOCK TABLE durante conciliación batch **bloquea ingresos de almacén 15+ minutos**, deteniendo operaciones de planta
+- La query N+1 en trazabilidad genera **501 queries** donde debería haber 1
 
-💡 **Recomendación prioritaria:** Corregir primero ERR-001 (índice faltante) y ERR-007 (bloqueo de tabla) para obtener una mejora inmediata del **35-50% en velocidad de procesamiento**.`,
+💡 **Recomendación prioritaria:** Corregir primero ERR-001 (índice) y ERR-007 (lock de tabla) para mejorar velocidad de conciliación en **40-60%** y eliminar bloqueos en almacén.`,
       datos: errores,
       tipo: 'alerta',
     };
@@ -89,21 +92,22 @@ ${medios.map(e => `  • **${e.tipo}** en \`${e.tabla}\`: ${e.descripcion}`).joi
     const totalOcurrencias = duplicados.reduce((s, d) => s + d.ocurrencias, 0);
 
     return {
-      texto: `🔄 **Análisis de Duplicidad de Códigos**
+      texto: `🔄 **Análisis de Duplicidad de Códigos en Inventario**
 
 Se detectaron **${duplicados.length} grupos de códigos duplicados** con un total de **${totalOcurrencias} registros afectados**:
 
-${duplicados.map((d, i) => `**${i + 1}. Código \`${d.codigo}\`** — ${d.ocurrencias} ocurrencias
-${d.registros.map(r => `   📄 ${r.id} | ${r.fecha} | S/ ${r.monto.toFixed(2)} | ${r.fuente}`).join('\n')}
-   ✅ **Corrección sugerida:** ${d.sugerenciaCorreccion}`).join('\n\n')}
+${duplicados.map((d, i) => `**${i + 1}. \`${d.codigo}\` — ${d.nombreProducto}** (${d.ocurrencias} ocurrencias)
+${d.registros.map(r => `   📦 ${r.id} | ${r.almacen} | Cant: ${r.cantidad} | Lote: ${r.lote}`).join('\n')}
+   ✅ **Corrección:** ${d.sugerenciaCorreccion}`).join('\n\n')}
 
 📋 **Plan de Corrección Automática:**
-1. Generar backup de tablas afectadas
-2. Ejecutar script de renumeración de códigos duplicados
-3. Agregar constraint UNIQUE para prevenir futuros duplicados
-4. Validar integridad referencial post-corrección
+1. Generar snapshot de tablas inventario_fisico e inventario_sistema
+2. Ejecutar script de deduplicación por (codigo, lote, almacen)
+3. Consolidar cantidades donde corresponda
+4. Agregar constraint UNIQUE(codigo_producto, lote, almacen_id) para prevenir futuros duplicados
+5. Implementar validación en escáner de código de barras para detectar doble lectura
 
-⚠️ **Riesgo si no se corrige:** Los duplicados generan **doble contabilización** estimada en **S/ ${(duplicados.reduce((s, d) => s + d.registros[0].monto, 0)).toFixed(2)}** y distorsionan los reportes financieros.`,
+⚠️ **Riesgo:** Los duplicados distorsionan el stock real. Se estiman **${duplicados.reduce((s, d) => s + (d.registros.length > 1 ? d.registros[1].cantidad : 0), 0)} unidades fantasma** en el sistema que no existen físicamente.`,
       datos: duplicados,
       tipo: 'tabla',
     };
@@ -113,23 +117,35 @@ ${d.registros.map(r => `   📄 ${r.id} | ${r.fecha} | S/ ${r.monto.toFixed(2)} 
     const resumen = this.conciliacionService.getResumen();
     const porTipo = this.conciliacionService.getDiscrepanciasPorTipo();
 
-    return {
-      texto: `📊 **Análisis de Discrepancias Principales**
+    const etiquetas: Record<string, string> = {
+      cantidad: 'Diferencia de Cantidad',
+      peso: 'Diferencia de Peso',
+      codigo_duplicado: 'Código Duplicado',
+      sin_contrapartida: 'Sin Contrapartida',
+      lote_incorrecto: 'Lote Incorrecto',
+      ubicacion: 'Ubicación Errónea',
+    };
 
-De **${resumen.totalProcesadas}** conciliaciones procesadas:
-- ✅ Conciliadas: **${resumen.conciliadas}** (${resumen.porcentajeCoincidencia}%)
+    return {
+      texto: `📊 **Análisis de Discrepancias de Inventario**
+
+De **${resumen.totalProcesados}** items conciliados (inventario físico vs sistema):
+- ✅ Conciliados: **${resumen.conciliados}** (${resumen.porcentajeCoincidencia}%)
 - ⚠️ Discrepancias: **${resumen.discrepancias}**
 - ⏳ Pendientes: **${resumen.pendientes}**
 
 **Clasificación por tipo de discrepancia:**
-${porTipo.map(t => `  • ${t.tipo.replace('_', ' ').toUpperCase()}: **${t.cantidad}** casos`).join('\n')}
+${porTipo.map(t => `  • ${etiquetas[t.tipo] || t.tipo}: **${t.cantidad}** casos`).join('\n')}
 
-**Diferencia neta:** S/ ${Math.abs(resumen.diferenciaNeta).toFixed(2)} ${resumen.diferenciaNeta > 0 ? '(exceso banco)' : '(exceso contable)'}
+**Diferencias acumuladas:**
+- Peso físico total: **${resumen.pesoTotalFisicoKg.toLocaleString()} Kg**
+- Peso en sistema: **${resumen.pesoTotalSistemaKg.toLocaleString()} Kg**
+- Diferencia neta: **${Math.abs(resumen.diferenciaPesoKg).toLocaleString()} Kg** ${resumen.diferenciaPesoKg > 0 ? '(excedente físico)' : '(faltante físico)'}
 
-💡 **Insights:**
-- La mayor causa de discrepancias es la **diferencia de montos**, sugiriendo errores de digitación
-- Las discrepancias de fecha suelen ser por **desfase de 1-3 días** entre registro bancario y contable
-- Los duplicados representan el **${((porTipo.find(t => t.tipo === 'duplicado')?.cantidad || 0) / resumen.discrepancias * 100).toFixed(1)}%** de las discrepancias`,
+💡 **Insights metalúrgicos:**
+- La mayor causa es **diferencia de cantidad**, sugiriendo errores en conteo físico o despachos no registrados
+- Las diferencias de peso en materias primas pueden deberse a **humedad, oxidación o merma natural** del material
+- Los códigos duplicados provienen de **doble lectura de escáner** durante inventario físico`,
       datos: { resumen, porTipo },
       tipo: 'grafico',
     };
@@ -138,25 +154,30 @@ ${porTipo.map(t => `  • ${t.tipo.replace('_', ' ').toUpperCase()}: **${t.canti
   private analizarRiesgos(): { texto: string; datos?: any; tipo?: MensajeChat['tipo'] } {
     const conciliaciones = this.conciliacionService.getConciliaciones();
     const riesgosas = conciliaciones
-      .filter(c => c.estado === 'discrepancia' && Math.abs(c.diferencia) > 1000)
-      .sort((a, b) => Math.abs(b.diferencia) - Math.abs(a.diferencia))
+      .filter(c => c.estado === 'discrepancia' && c.diferenciaCantidad < 0)
+      .sort((a, b) => a.diferenciaCantidad - b.diferenciaCantidad)
       .slice(0, 5);
 
     return {
-      texto: `⚠️ **Transacciones con Mayor Riesgo de Error**
+      texto: `⚠️ **Productos con Mayor Riesgo de Faltante/Merma**
 
-Las 5 transacciones con mayor diferencia detectada:
+Los 5 productos con mayor diferencia negativa (sistema dice tener más de lo que hay físicamente):
 
-${riesgosas.map((c, i) => `**${i + 1}.** ${c.id} — Diferencia: **S/ ${Math.abs(c.diferencia).toFixed(2)}**
-   Banco: S/ ${c.transaccionBancaria?.monto.toFixed(2)} | Contable: S/ ${c.transaccionContable?.monto.toFixed(2) ?? 'N/A'}
-   Tipo: ${c.tipoDiscrepancia} | ${c.observacion}`).join('\n\n')}
+${riesgosas.map((c, i) => `**${i + 1}.** \`${c.registroFisico?.producto.codigo}\` — ${c.registroFisico?.producto.nombre}
+   📦 Físico: **${c.registroFisico?.cantidadFisica} ${c.registroFisico?.producto.unidadMedida}** | Sistema: **${c.registroSistema?.cantidadSistema} ${c.registroFisico?.producto.unidadMedida}**
+   📉 Faltante: **${Math.abs(c.diferenciaCantidad)} ${c.registroFisico?.producto.unidadMedida}** | Almacén: ${c.registroFisico?.producto.almacen}
+   🏷️ Lote: ${c.registroFisico?.lote}`).join('\n\n')}
 
-🎯 **Factores de riesgo identificados:**
-- Montos superiores a S/ 10,000 tienen **3x más probabilidad** de error
-- Transacciones de fin de mes concentran el **45%** de discrepancias
-- Los pagos a proveedores representan la categoría más propensa a errores
+🎯 **Causas probables en metalurgia:**
+- **Merma de proceso:** Pérdida natural en fundición (escoria, volatilización)
+- **Despachos no registrados:** Salidas urgentes a planta sin vale de salida
+- **Error de pesaje:** Balanzas descalibradas en zona de carga
+- **Robo/sustracción:** Revisar cámaras en almacenes con faltantes recurrentes
 
-📌 **Acción recomendada:** Implementar doble validación para transacciones > S/ 5,000 y revisión automática en cierres mensuales.`,
+📌 **Acción recomendada:**
+1. Recalibrar balanzas de Almacén Principal y Patio de Chatarra
+2. Implementar doble validación en despachos > 100 Kg
+3. Auditoría cruzada mensual por almacén`,
       datos: riesgosas,
       tipo: 'tabla',
     };
@@ -167,22 +188,22 @@ ${riesgosas.map((c, i) => `**${i + 1}.** ${c.id} — Diferencia: **S/ ${Math.abs
     const porMes = this.conciliacionService.getConciliacionesPorMes();
 
     return {
-      texto: `📈 **Resumen de Conciliaciones del Período**
+      texto: `📈 **Resumen de Conciliación de Inventarios — Período Ene-Abr 2026**
 
-**Período:** Enero 2026 - Abril 2026
-
-| Mes | Conciliadas | Discrepancias | Pendientes |
+| Mes | Conciliados | Discrepancias | Pendientes |
 |-----|-------------|---------------|------------|
-${porMes.map(m => `| ${m.mes} | ${m.conciliadas} | ${m.discrepancias} | ${m.pendientes} |`).join('\n')}
+${porMes.map(m => `| ${m.mes} | ${m.conciliados} | ${m.discrepancias} | ${m.pendientes} |`).join('\n')}
 
 **Totales acumulados:**
-- 📊 Total procesadas: **${resumen.totalProcesadas}**
-- 💰 Monto total banco: **S/ ${resumen.montoTotalBanco.toLocaleString()}**
-- 📒 Monto total contable: **S/ ${resumen.montoTotalContable.toLocaleString()}**
-- 📉 Diferencia neta: **S/ ${Math.abs(resumen.diferenciaNeta).toLocaleString()}**
-- ✅ Tasa de conciliación: **${resumen.porcentajeCoincidencia}%**
+- 📊 Items procesados: **${resumen.totalProcesados}**
+- ⚖️ Peso total inventario físico: **${resumen.pesoTotalFisicoKg.toLocaleString()} Kg**
+- 💻 Peso total en sistema: **${resumen.pesoTotalSistemaKg.toLocaleString()} Kg**
+- 📉 Diferencia de peso neta: **${Math.abs(resumen.diferenciaPesoKg).toLocaleString()} Kg**
+- ✅ Tasa de coincidencia: **${resumen.porcentajeCoincidencia}%**
 
-📊 **Tendencia:** La tasa de conciliación ha mejorado un **2.5%** respecto al trimestre anterior. Se proyecta alcanzar el **95%** si se corrigen los errores de BD identificados.`,
+📊 **Tendencia:** La tasa de conciliación se mantiene estable. Con la corrección de errores de BD identificados y la implementación de lectura por código de barras, se proyecta alcanzar **96%+** de coincidencia.
+
+🏭 **Nota metalúrgica:** La merma natural aceptable en proceso de fundición es 2-3% en peso. Valores superiores requieren revisión de procedimientos.`,
       datos: { resumen, porMes },
       tipo: 'grafico',
     };
@@ -190,33 +211,34 @@ ${porMes.map(m => `| ${m.mes} | ${m.conciliadas} | ${m.discrepancias} | ${m.pend
 
   private analizarPatrones(): { texto: string; datos?: any; tipo?: MensajeChat['tipo'] } {
     return {
-      texto: `🔁 **Patrones de Error Recurrentes Detectados**
+      texto: `🔁 **Patrones de Error Recurrentes en Inventario Metalúrgico**
 
-**1. Errores de digitación en montos** (38% de discrepancias)
-   - Patrón: Inversión de dígitos (ej: 1,540.00 → 1,450.00)
-   - Frecuencia: ~5 casos/mes
-   - Solución: Implementar validación de doble entrada
+**1. Diferencias de peso en materias primas** (35% de discrepancias)
+   - Patrón: Peso físico < peso sistema en cobre y zinc
+   - Causa: Merma por oxidación y humedad en almacenamiento prolongado
+   - Solución: Aplicar factor de merma del 1.5% automático para MP almacenadas > 30 días
 
-**2. Desfase temporal banco-contabilidad** (25% de discrepancias)
-   - Patrón: Registros contables 1-3 días después del movimiento bancario
-   - Causa: Proceso manual de ingreso contable
-   - Solución: Automatizar importación de extractos bancarios
+**2. Conteo incorrecto en productos terminados** (28% de discrepancias)
+   - Patrón: Diferencias de ±5-15 unidades en tubos, barras y planchas
+   - Causa: Conteo manual propenso a error en lotes grandes
+   - Solución: Implementar conteo por peso (pesar lote completo / peso unitario)
 
-**3. Duplicación de asientos contables** (18% de discrepancias)
-   - Patrón: Mismo monto y fecha, código secuencial
-   - Causa: Doble clic en botón de registro / importación repetida
-   - Solución: Agregar lock optimista y validación pre-insert
+**3. Duplicación de códigos en sistema** (18% de discrepancias)
+   - Patrón: Mismo producto registrado 2-3 veces con lotes iguales
+   - Causa: Doble lectura de escáner y re-importación de archivos Excel
+   - Solución: Constraint UNIQUE + validación pre-insert + lock en proceso de carga
 
-**4. Transacciones sin contrapartida** (12% de discrepancias)
-   - Patrón: Movimientos bancarios pequeños sin asiento contable
-   - Causa: Comisiones bancarias y cargos automáticos no registrados
-   - Solución: Configurar reglas automáticas para comisiones recurrentes
+**4. Materiales sin contrapartida en sistema** (12% de discrepancias)
+   - Patrón: Materiales encontrados físicamente sin registro digital
+   - Causa: Ingresos urgentes de chatarra y materia prima sin documentación
+   - Solución: App móvil para registro inmediato en punto de recepción
 
-**5. Errores de categorización** (7% de discrepancias)
-   - Patrón: Misma transacción clasificada en diferentes cuentas contables
-   - Solución: Estandarizar catálogo de cuentas con reglas de mapeo automático
+**5. Lotes cruzados entre almacenes** (7% de discrepancias)
+   - Patrón: Transferencias internas sin actualizar sistema
+   - Causa: Movimientos entre Almacén Fundición y Almacén PT sin vale
+   - Solución: Registro obligatorio de transferencia con escáner en origen y destino
 
-🤖 **IA Predictiva:** Basándose en estos patrones, se estima que el próximo mes habrá ~**8 discrepancias por digitación** y ~**3 duplicados**, concentrados en la última semana del mes.`,
+🤖 **Predicción:** Con estos patrones, se estima para mayo 2026: ~**6 discrepancias de peso**, ~**4 duplicados**, ~**3 sin contrapartida**, concentrados en la última semana del mes (cierre de inventario).`,
       tipo: 'texto',
     };
   }
@@ -226,74 +248,108 @@ ${porMes.map(m => `| ${m.mes} | ${m.conciliadas} | ${m.discrepancias} | ${m.pend
     const pendientes = this.conciliacionService.getConciliaciones().filter(c => c.estado === 'pendiente');
 
     return {
-      texto: `⏳ **Conciliaciones Pendientes**
+      texto: `⏳ **Items Pendientes de Conciliar**
 
-Actualmente hay **${resumen.pendientes} conciliaciones pendientes** de un total de ${resumen.totalProcesadas}.
+Hay **${resumen.pendientes} items** encontrados en inventario físico sin registro en el sistema:
 
-**Detalle:**
-${pendientes.map(p => `  • ${p.id}: ${p.transaccionBancaria?.descripcion} — S/ ${p.transaccionBancaria?.monto.toFixed(2)} (${p.observacion})`).join('\n')}
+${pendientes.map(p => `  • \`${p.registroFisico?.producto.codigo}\` — ${p.registroFisico?.producto.nombre}
+    📦 ${p.registroFisico?.cantidadFisica} ${p.registroFisico?.producto.unidadMedida} | ⚖️ ${p.registroFisico?.pesoKg} Kg
+    📍 ${p.registroFisico?.ubicacion} | 🏭 ${p.registroFisico?.producto.almacen}`).join('\n')}
 
-**Antigüedad promedio:** 8.5 días
-**Monto total pendiente:** S/ ${pendientes.reduce((s, p) => s + (p.transaccionBancaria?.monto ?? 0), 0).toFixed(2)}
+**Peso total pendiente:** ${pendientes.reduce((s, p) => s + (p.registroFisico?.pesoKg ?? 0), 0).toFixed(2)} Kg
 
-💡 **Recomendación:** Priorizar las conciliaciones pendientes con monto > S/ 5,000 y antigüedad > 5 días.`,
+💡 **Acciones recomendadas:**
+1. Verificar si son ingresos recientes no procesados en sistema
+2. Revisar guías de remisión de los últimos 5 días
+3. Consultar con almacenero responsable sobre origen del material
+4. Registrar en sistema con documento de regularización`,
       datos: pendientes,
       tipo: 'tabla',
     };
   }
 
-  private analizarPorBanco(): { texto: string; datos?: any; tipo?: MensajeChat['tipo'] } {
-    const conciliaciones = this.conciliacionService.getConciliaciones();
-    const porBanco: Record<string, { total: number; discrepancias: number; monto: number }> = {};
-
-    conciliaciones.forEach(c => {
-      const banco = c.transaccionBancaria?.banco ?? 'N/A';
-      if (!porBanco[banco]) porBanco[banco] = { total: 0, discrepancias: 0, monto: 0 };
-      porBanco[banco].total++;
-      if (c.estado === 'discrepancia') porBanco[banco].discrepancias++;
-      porBanco[banco].monto += c.transaccionBancaria?.monto ?? 0;
-    });
-
-    const datos = Object.entries(porBanco).sort((a, b) => b[1].discrepancias - a[1].discrepancias);
+  private analizarPorAlmacen(): { texto: string; datos?: any; tipo?: MensajeChat['tipo'] } {
+    const porAlmacen = this.conciliacionService.getDiscrepanciasPorAlmacen();
 
     return {
-      texto: `🏦 **Análisis de Discrepancias por Banco**
+      texto: `🏭 **Análisis de Discrepancias por Almacén**
 
-| Banco | Total | Discrepancias | Tasa Error | Monto Total |
-|-------|-------|---------------|------------|-------------|
-${datos.map(([banco, d]) => `| ${banco} | ${d.total} | ${d.discrepancias} | ${(d.discrepancias / d.total * 100).toFixed(1)}% | S/ ${d.monto.toFixed(2)} |`).join('\n')}
+| Almacén | Total Items | Discrepancias | Tasa Error |
+|---------|-------------|---------------|------------|
+${porAlmacen.map(a => `| ${a.almacen} | ${a.total} | ${a.discrepancias} | ${a.total > 0 ? (a.discrepancias / a.total * 100).toFixed(1) : 0}% |`).join('\n')}
 
-🔍 **Insight:** ${datos[0][0]} presenta la mayor cantidad de discrepancias. Se recomienda revisar el formato de importación de extractos de este banco y verificar la configuración de mapeo de campos.`,
-      datos: porBanco,
+🔍 **Insight:** ${porAlmacen[0]?.almacen} presenta la mayor cantidad de discrepancias.
+
+**Recomendaciones por almacén:**
+- **Almacén Fundición:** Alto movimiento genera más errores. Implementar registro en tiempo real.
+- **Patio de Chatarra:** Material a granel difícil de cuantificar. Usar pesaje con báscula de piso.
+- **Bóveda Metales Preciosos:** Requiere doble conteo y verificación supervisada obligatoria.
+- **Almacén PT:** Implementar FIFO estricto y etiquetado por lote de producción.`,
+      datos: porAlmacen,
       tipo: 'tabla',
+    };
+  }
+
+  private analizarPesos(): { texto: string; datos?: any; tipo?: MensajeChat['tipo'] } {
+    const resumen = this.conciliacionService.getResumen();
+
+    return {
+      texto: `⚖️ **Análisis de Diferencia de Peso — Físico vs Sistema**
+
+**Peso total inventario físico:** ${resumen.pesoTotalFisicoKg.toLocaleString()} Kg
+**Peso total en sistema:** ${resumen.pesoTotalSistemaKg.toLocaleString()} Kg
+**Diferencia neta:** ${Math.abs(resumen.diferenciaPesoKg).toLocaleString()} Kg ${resumen.diferenciaPesoKg > 0 ? '(excedente físico — hay más material del que dice el sistema)' : '(faltante físico — el sistema dice que hay más de lo que realmente existe)'}
+
+📊 **Desglose por causas:**
+- Merma natural de proceso: ~1.5-2.5% (fundición, escoria, volatilización)
+- Error de pesaje: ~0.3-0.5% (calibración de balanzas)
+- Despachos no registrados: variable
+- Humedad/oxidación en almacenamiento: ~0.5-1.0% en cobre y zinc
+
+🏭 **Referencia metalúrgica:**
+| Material | Merma aceptable | Merma detectada |
+|----------|----------------|-----------------|
+| Cobre | 1.5% | ~2.1% ⚠️ |
+| Zinc | 2.0% | ~1.8% ✅ |
+| Chatarra ferrosa | 3.0% | ~2.5% ✅ |
+| Aluminio | 2.5% | ~3.2% ⚠️ |
+
+💡 **Cobre y aluminio** muestran mermas por encima del rango aceptable. Revisar proceso de fundición y condiciones de almacenamiento.`,
+      tipo: 'grafico',
     };
   }
 
   private predecirErrores(): { texto: string; datos?: any; tipo?: MensajeChat['tipo'] } {
     return {
-      texto: `🔮 **Predicción de Errores - Próximo Mes**
+      texto: `🔮 **Predicción de Discrepancias — Próximo Mes (Mayo 2026)**
 
-Basándose en el análisis de patrones históricos de los últimos 3 meses:
+Basándose en patrones de los últimos 3 meses de inventario:
 
-**Errores esperados:**
-- 📊 Discrepancias de monto: **8-12 casos** (↑ en cierre de mes)
-- 🔄 Duplicados de código: **3-5 casos**
-- 📅 Desfases de fecha: **5-7 casos**
-- 🚫 Sin contrapartida: **2-3 casos**
+**Discrepancias esperadas:**
+- ⚖️ Diferencias de peso: **6-8 casos** (mayor riesgo en cobre y aluminio)
+- 📦 Diferencias de cantidad: **8-12 casos** (pico en cierre mensual)
+- 🔄 Duplicados de código: **3-4 casos** (días de inventario masivo)
+- 🚫 Sin contrapartida: **2-4 casos** (ingresos no registrados)
+- 🏷️ Lotes cruzados: **2-3 casos** (transferencias internas)
 
 **Períodos de mayor riesgo:**
-- 🔴 Última semana del mes: **60%** de errores concentrados
-- 🟡 Quincena: **25%** de errores
-- 🟢 Resto del mes: **15%** de errores
+- 🔴 Última semana (cierre inventario): **55%** de errores
+- 🟡 Días de recepción de materia prima (lunes/miércoles): **25%**
+- 🟢 Resto del mes: **20%**
 
-**Acciones preventivas recomendadas:**
-1. ⚙️ Activar validación doble para montos > S/ 5,000 antes del cierre
-2. 🔒 Implementar constraint UNIQUE en códigos de asiento
-3. 📥 Automatizar importación de extractos bancarios día-1
-4. 👥 Programar revisión cruzada para la última semana del mes
-5. 📧 Configurar alertas automáticas para transacciones sin match en 48h
+**Materiales con mayor riesgo:**
+1. 🥇 Chatarra ferrosa — alta rotación, difícil medición exacta
+2. 🥈 Cobre cátodos — merma por oxidación + alto valor
+3. 🥉 Insumos de fundición — consumo irregular
 
-**Ahorro estimado:** Implementando estas medidas se podría reducir las discrepancias en un **40-60%**, ahorrando aproximadamente **15 horas/mes** de trabajo manual de conciliación.`,
+**Acciones preventivas:**
+1. 📱 Activar validación móvil para ingresos > 500 Kg
+2. ⚖️ Calibrar balanzas antes del cierre mensual
+3. 🔒 Constraint UNIQUE en BD para prevenir duplicados
+4. 👥 Programar conteo cruzado con 2 personas para metales preciosos
+5. 📊 Dashboard de alertas en tiempo real para diferencias > 2%
+
+**Ahorro estimado:** Reducción del **45-60%** en discrepancias, equivalente a ~**8 horas/mes** de trabajo manual de ajuste y ~**S/ 12,000** en mermas no controladas.`,
       tipo: 'texto',
     };
   }
@@ -303,17 +359,18 @@ Basándose en el análisis de patrones históricos de los últimos 3 meses:
     return {
       texto: `🤖 He analizado tu consulta: "${pregunta}"
 
-Aquí tienes un resumen rápido del estado actual:
+Resumen actual del inventario metalúrgico:
 
-- **${resumen.totalProcesadas}** conciliaciones procesadas
+- **${resumen.totalProcesados}** items conciliados (físico vs sistema)
 - **${resumen.porcentajeCoincidencia}%** de tasa de coincidencia
 - **${resumen.discrepancias}** discrepancias por resolver
-- **${resumen.pendientes}** transacciones pendientes
+- **${resumen.pendientes}** items pendientes de contrapartida
+- ⚖️ Diferencia de peso neta: **${Math.abs(resumen.diferenciaPesoKg).toLocaleString()} Kg**
 
-💡 Puedo ayudarte con preguntas más específicas como:
+💡 Puedo ayudarte con análisis más específicos:
 ${this.preguntasSugeridas.slice(0, 5).map(p => `  • "${p}"`).join('\n')}
 
-¿Qué te gustaría analizar?`,
+¿Qué aspecto del inventario te gustaría analizar?`,
       tipo: 'texto',
     };
   }
