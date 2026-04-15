@@ -92,7 +92,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 
       <!-- Footer -->
       <div class="mt-auto p-3 border-t border-white/10 flex items-center gap-2 justify-center">
-        <span class="text-[10px] text-blue-300">v2026.1.01 SIGPRO</span>
+        <span class="text-[10px] text-blue-300">v2026.1.01 FIXORA</span>
       </div>
     </aside>
   `,

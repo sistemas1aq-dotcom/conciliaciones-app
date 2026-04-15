@@ -12,7 +12,7 @@ import { Router } from '@angular/router';
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl font-bold">?</div>
             <div>
-              <h2 class="text-lg font-bold">Ayuda — SIGPRO</h2>
+              <h2 class="text-lg font-bold">Ayuda — FIXORA</h2>
               <p class="text-xs text-blue-200">{{ currentHelp.titulo }}</p>
             </div>
           </div>
@@ -87,7 +87,7 @@ import { Router } from '@angular/router';
         </div>
 
         <div class="p-4 border-t border-gray-200 text-center">
-          <p class="text-[10px] text-gray-400">SIGPRO v2026.1.01 — Aquarius Consulting — Ayuda contextual</p>
+          <p class="text-[10px] text-gray-400">FIXORA v2026.1.01 — Aquarius Consulting — Ayuda contextual</p>
         </div>
       </div>
     </div>
@@ -131,6 +131,6 @@ export class HelpOverlayComponent {
     { path: '/ficha-tecnica', titulo: 'Ficha Técnica del Activo', descripcion: 'Vista detallada de un activo fijo con toda su información: datos generales, ubicación, estado, información contable y fotografía.', pasos: ['Busque el activo por código o descripción', 'Revise cada sección de la ficha', 'Use "Imprimir" para generar copia física'] },
     { path: '/ai-assistant', titulo: 'Asistente de Inteligencia Artificial', descripcion: 'Chat inteligente que analiza los datos del inventario y responde preguntas en lenguaje natural. Puede detectar errores, predecir problemas y sugerir correcciones.', pasos: ['Escriba su pregunta en el campo de texto', 'Use las preguntas sugeridas como guía', 'El asistente analiza datos reales del sistema'] },
     { path: '/registro-fotografico', titulo: 'Registro Fotográfico', descripcion: 'Galería de fotografías de los activos fijos tomadas durante el inventario físico. Permite búsqueda por código y descarga masiva.', pasos: ['Busque por código de barras', 'Filtre por año', 'Use "Descarga Masiva" para exportar fotos'] },
-    { path: '/', titulo: 'Sistema SIGPRO — Ayuda General', descripcion: 'Sistema de Gestión de Proyectos para el Inventario General de Activos Fijos. Permite registrar, conciliar y reportar sobre los activos patrimoniales de la empresa.', pasos: ['Navegue usando el menú lateral', 'Cada sección tiene funcionalidades CRUD', 'Use el Asistente IA para análisis avanzados'] },
+    { path: '/', titulo: 'Sistema FIXORA — Ayuda General', descripcion: 'Sistema de Gestión de Proyectos para el Inventario General de Activos Fijos. Permite registrar, conciliar y reportar sobre los activos patrimoniales de la empresa.', pasos: ['Navegue usando el menú lateral', 'Cada sección tiene funcionalidades CRUD', 'Use el Asistente IA para análisis avanzados'] },
   ];
 }
