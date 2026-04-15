@@ -60,7 +60,7 @@ import { ActivoFijoService } from '../../services/activo-fijo.service';
                   <td class="px-3 py-2.5 text-xs">{{ item.descripcion }}</td>
                   <td class="px-3 py-2.5 text-xs text-center">PEN</td>
                   <td class="px-3 py-2.5 text-xs text-right font-mono">{{ item.valorNeto.toLocaleString('es-PE', {minimumFractionDigits: 2}) }}</td>
-                  <td class="px-3 py-2.5 text-xs">AQUARIUS</td>
+                  <td class="px-3 py-2.5 text-xs">EMPAFRUT</td>
                   <td class="px-3 py-2.5 text-xs font-mono">20100123456</td>
                   <td class="px-3 py-2.5 text-xs">{{ item.responsable }}</td>
                   <td class="px-3 py-2.5 text-xs whitespace-nowrap">{{ item.ubicacion.substring(0, 20) }}</td>

@@ -138,9 +138,9 @@ import { ActivoFijo, InventarioContable } from '../../models/activo-fijo.model';
                     <p class="text-xs text-gray-500 font-medium">Conservacion</p>
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1"
                       [class]="{
-                        'bg-green-100 text-green-700': activoSeleccionado.estadoConservacion === 'Bueno' || activoSeleccionado.estadoConservacion === 'Nuevo',
-                        'bg-amber-100 text-amber-700': activoSeleccionado.estadoConservacion === 'Regular',
-                        'bg-red-100 text-red-700': activoSeleccionado.estadoConservacion === 'Malo' || activoSeleccionado.estadoConservacion === 'Chatarra'
+                        'bg-green-100 text-green-700': activoSeleccionado.estadoConservacion === 'BO' || activoSeleccionado.estadoConservacion === 'BI',
+                        'bg-amber-100 text-amber-700': activoSeleccionado.estadoConservacion === 'RO' || activoSeleccionado.estadoConservacion === 'RI',
+                        'bg-red-100 text-red-700': activoSeleccionado.estadoConservacion === 'MO' || activoSeleccionado.estadoConservacion === 'MI'
                       }">
                       {{ activoSeleccionado.estadoConservacion }}
                     </span>

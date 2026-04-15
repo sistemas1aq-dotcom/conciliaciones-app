@@ -96,9 +96,9 @@ interface FotoRegistro {
                   <span class="text-xs text-gray-500">{{ foto.fecha }}</span>
                   <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
                     [class]="{
-                      'bg-green-100 text-green-700': foto.estadoConservacion === 'Bueno' || foto.estadoConservacion === 'Nuevo',
-                      'bg-amber-100 text-amber-700': foto.estadoConservacion === 'Regular',
-                      'bg-red-100 text-red-700': foto.estadoConservacion === 'Malo' || foto.estadoConservacion === 'Chatarra'
+                      'bg-green-100 text-green-700': foto.estadoConservacion === 'BO' || foto.estadoConservacion === 'BI',
+                      'bg-amber-100 text-amber-700': foto.estadoConservacion === 'RO' || foto.estadoConservacion === 'RI',
+                      'bg-red-100 text-red-700': foto.estadoConservacion === 'MO' || foto.estadoConservacion === 'MI'
                     }">
                     {{ foto.estadoConservacion }}
                   </span>

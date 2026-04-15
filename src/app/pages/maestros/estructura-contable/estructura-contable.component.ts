@@ -111,18 +111,29 @@ interface ExcelRow {
 export class EstructuraContableComponent implements OnInit {
   activeTab: 'carga' | 'campos' = 'carga';
 
-  mockExcelData: ExcelRow[] = [
-    { fila: 1, estado: 'OK', numRegistro: '000100001', activoFijo: 'Laptop Dell Latitude 5540', sn: 'SN8472619350', concatenado: '000100001-336.01', errores: '' },
-    { fila: 2, estado: 'OK', numRegistro: '000100002', activoFijo: 'Laptop HP ProBook 450 G10', sn: 'SN7361849250', concatenado: '000100002-335.01', errores: '' },
-    { fila: 3, estado: 'ERROR', numRegistro: '000100003', activoFijo: 'Monitor Samsung 27"', sn: '', concatenado: '000100003-333.01', errores: 'Serie no informada' },
-    { fila: 4, estado: 'OK', numRegistro: '000100004', activoFijo: 'Impresora HP LaserJet', sn: 'SN5849372610', concatenado: '000100004-334.01', errores: '' },
-    { fila: 5, estado: 'ERROR', numRegistro: '000100005', activoFijo: 'Servidor Dell PowerEdge', sn: 'SN9283746152', concatenado: '', errores: 'Cuenta contable no existe' },
-    { fila: 6, estado: 'OK', numRegistro: '000100006', activoFijo: 'UPS APC Smart 3000VA', sn: 'SN1029384756', concatenado: '000100006-336.02', errores: '' },
-    { fila: 7, estado: 'OK', numRegistro: '000100007', activoFijo: 'Escritorio ejecutivo madera', sn: 'SN6574839201', concatenado: '000100007-332.01', errores: '' },
-    { fila: 8, estado: 'ERROR', numRegistro: '', activoFijo: 'Silla ergonomica gerencial', sn: 'SN4738291056', concatenado: '', errores: 'NumRegistro vacio' },
-  ];
+  mockExcelData: ExcelRow[] = [];
 
   constructor(private svc: ActivoFijoService) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    // Genera preview a partir de los primeros registros contables reales
+    const contables = this.svc.getInventarioContable().slice(0, 20);
+    this.mockExcelData = contables.map((c, i) => {
+      const tieneSerie = !!c.responsable;
+      const tieneCuenta = !!c.cuentaContable;
+      const estado = tieneSerie && tieneCuenta ? 'OK' : 'ERROR';
+      let errores = '';
+      if (!tieneCuenta) errores = 'Cuenta contable no informada';
+      else if (!tieneSerie) errores = 'Responsable no asignado';
+      return {
+        fila: i + 1,
+        estado,
+        numRegistro: c.codigoActivo,
+        activoFijo: (c.descripcion || '').substring(0, 50),
+        sn: c.responsable || '',
+        concatenado: `${c.codigoActivo}-${c.cuentaContable || 'N/A'}`,
+        errores,
+      };
+    });
+  }
 }

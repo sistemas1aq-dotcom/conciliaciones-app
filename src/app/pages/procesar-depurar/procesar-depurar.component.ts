@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivoFijoService } from '../../services/activo-fijo.service';
 
 @Component({
   selector: 'app-procesar-depurar',
@@ -230,55 +231,106 @@ import { FormsModule } from '@angular/forms';
 export class ProcesarDepurarComponent implements OnInit {
   activeTab: 'dashboard' | 'errores' | 'validos' = 'dashboard';
 
-  kpi = { total: 35, barridos: 35, correctos: 28, conError: 7, correctosPct: 80 };
+  kpi = { total: 0, barridos: 0, correctos: 0, conError: 0, correctosPct: 0 };
+  topErrores: { codigo: string; cantidad: number }[] = [];
+  topUbicaciones: { nombre: string; cantidad: number }[] = [];
+  topCatalogos: { nombre: string; cantidad: number }[] = [];
+  errorRows: { fila: number; barra: string; descripcion: string; codigoError: string; detalle: string }[] = [];
+  validRows: { fila: number; barra: string; descripcion: string; ubicacion: string; centroCosto: string }[] = [];
 
-  topErrores = [
-    { codigo: 'ERR-UBI', cantidad: 3 },
-    { codigo: 'ERR-SER', cantidad: 2 },
-    { codigo: 'ERR-DUP', cantidad: 1 },
-    { codigo: 'ERR-CAT', cantidad: 1 },
-  ];
+  constructor(private svc: ActivoFijoService) {}
 
-  topUbicaciones = [
-    { nombre: 'Produccion - Horno 1', cantidad: 5 },
-    { nombre: 'Sala de Servidores / TI', cantidad: 5 },
-    { nombre: 'Laboratorio de Calidad', cantidad: 4 },
-    { nombre: 'Taller de Mantenimiento', cantidad: 4 },
-    { nombre: 'Oficina Gerencia', cantidad: 4 },
-  ];
+  ngOnInit() {
+    const activos = this.svc.getActivosFijos();
+    const conc = this.svc.getConciliaciones();
 
-  topCatalogos = [
-    { nombre: 'Equipos de Computo', cantidad: 8 },
-    { nombre: 'Maquinaria Industrial', cantidad: 6 },
-    { nombre: 'Mobiliario', cantidad: 5 },
-    { nombre: 'Equipos de Laboratorio', cantidad: 4 },
-    { nombre: 'Vehiculos', cantidad: 3 },
-  ];
+    const total = activos.length;
+    const correctos = conc.filter(c => c.resultado === 'conciliado').length;
+    const discrepancias = conc.filter(c => c.resultado === 'discrepancia').length;
+    const sobrantes = conc.filter(c => c.resultado === 'sobrante').length;
+    const conError = discrepancias + sobrantes;
 
-  errorRows = [
-    { fila: 3, barra: 'AF-000003', descripcion: 'Monitor Samsung 27" Curvo', codigoError: 'ERR-UBI', detalle: 'Ubicacion no registrada en maestro' },
-    { fila: 8, barra: 'AF-000008', descripcion: 'Silla ergonomica gerencial', codigoError: 'ERR-SER', detalle: 'Serie duplicada con AF-000012' },
-    { fila: 15, barra: 'AF-000015', descripcion: 'Fresadora universal', codigoError: 'ERR-UBI', detalle: 'Ubicacion no coincide con sede' },
-    { fila: 19, barra: 'AF-000019', descripcion: 'Camion Volquete CAT 740', codigoError: 'ERR-CAT', detalle: 'Catalogo no vigente' },
-    { fila: 22, barra: 'AF-000022', descripcion: 'Durometro Rockwell', codigoError: 'ERR-DUP', detalle: 'Barra duplicada en otra lectura' },
-    { fila: 27, barra: 'AF-000027', descripcion: 'Aire acondicionado split', codigoError: 'ERR-SER', detalle: 'Serie no informada' },
-    { fila: 30, barra: 'AF-000030', descripcion: 'Taladro de columna', codigoError: 'ERR-UBI', detalle: 'Ubicacion fuera del alcance del proyecto' },
-  ];
+    this.kpi = {
+      total,
+      barridos: total,
+      correctos,
+      conError,
+      correctosPct: total ? Math.round((correctos / total) * 100) : 0,
+    };
 
-  validRows = [
-    { fila: 1, barra: 'AF-000001', descripcion: 'Laptop Dell Latitude 5540', ubicacion: 'Oficina Gerencia General', centroCosto: 'CC-100' },
-    { fila: 2, barra: 'AF-000002', descripcion: 'Laptop HP ProBook 450 G10', ubicacion: 'Oficina Contabilidad', centroCosto: 'CC-500' },
-    { fila: 4, barra: 'AF-000004', descripcion: 'Impresora Multifuncional HP', ubicacion: 'Oficina Contabilidad', centroCosto: 'CC-500' },
-    { fila: 5, barra: 'AF-000005', descripcion: 'Servidor Dell PowerEdge R750', ubicacion: 'Sala de Servidores / TI', centroCosto: 'CC-600' },
-    { fila: 6, barra: 'AF-000006', descripcion: 'UPS APC Smart 3000VA', ubicacion: 'Sala de Servidores / TI', centroCosto: 'CC-600' },
-    { fila: 7, barra: 'AF-000007', descripcion: 'Escritorio ejecutivo madera', ubicacion: 'Oficina Gerencia General', centroCosto: 'CC-100' },
-    { fila: 9, barra: 'AF-000009', descripcion: 'Archivador metalico 4 gavetas', ubicacion: 'Oficina Contabilidad', centroCosto: 'CC-500' },
-    { fila: 10, barra: 'AF-000010', descripcion: 'Mesa de reuniones 12 personas', ubicacion: 'Oficina Gerencia General', centroCosto: 'CC-100' },
-    { fila: 11, barra: 'AF-000011', descripcion: 'Horno de fundicion electrico', ubicacion: 'Produccion - Horno 1', centroCosto: 'CC-200' },
-    { fila: 12, barra: 'AF-000012', descripcion: 'Horno de fundicion a gas', ubicacion: 'Produccion - Horno 2', centroCosto: 'CC-200' },
-    { fila: 13, barra: 'AF-000013', descripcion: 'Prensa hidraulica 100 Tn', ubicacion: 'Produccion - Horno 1', centroCosto: 'CC-200' },
-    { fila: 14, barra: 'AF-000014', descripcion: 'Torno CNC industrial', ubicacion: 'Taller de Mantenimiento', centroCosto: 'CC-800' },
-  ];
+    // Top errores: derivados de observación en conciliación
+    const errMap = new Map<string, number>();
+    for (const c of conc) {
+      if (c.resultado === 'conciliado') continue;
+      const obs = (c.observacion || '').toUpperCase();
+      let codigo = 'ERR-GEN';
+      if (obs.includes('UBICAC')) codigo = 'ERR-UBI';
+      else if (obs.includes('ESTADO')) codigo = 'ERR-EST';
+      else if (obs.includes('SOBRANTE') || obs.includes('SIN REGISTRO')) codigo = 'ERR-SOB';
+      else if (obs.includes('BIEN DE CONTROL')) codigo = 'ERR-BCO';
+      else if (obs.includes('HERRAMIENT')) codigo = 'ERR-HER';
+      else if (obs.includes('FALTANT') || obs.includes('NO ENCONTRADO')) codigo = 'ERR-FAL';
+      errMap.set(codigo, (errMap.get(codigo) || 0) + 1);
+    }
+    this.topErrores = Array.from(errMap.entries())
+      .map(([codigo, cantidad]) => ({ codigo, cantidad }))
+      .sort((a, b) => b.cantidad - a.cantidad)
+      .slice(0, 5);
 
-  ngOnInit() {}
+    // Top ubicaciones
+    const ubMap = new Map<string, number>();
+    for (const a of activos) {
+      const u = a.ubicacion || '—';
+      ubMap.set(u, (ubMap.get(u) || 0) + 1);
+    }
+    this.topUbicaciones = Array.from(ubMap.entries())
+      .map(([nombre, cantidad]) => ({ nombre, cantidad }))
+      .sort((a, b) => b.cantidad - a.cantidad)
+      .slice(0, 5);
+
+    // Top catálogos
+    const catMap = new Map<string, number>();
+    for (const a of activos) {
+      const c = a.catDescripcion || '—';
+      catMap.set(c, (catMap.get(c) || 0) + 1);
+    }
+    this.topCatalogos = Array.from(catMap.entries())
+      .map(([nombre, cantidad]) => ({ nombre, cantidad }))
+      .sort((a, b) => b.cantidad - a.cantidad)
+      .slice(0, 5);
+
+    // Error rows - primeras 30 conciliaciones con problemas
+    this.errorRows = conc
+      .filter(c => c.resultado !== 'conciliado')
+      .slice(0, 30)
+      .map((c, i) => {
+        const obs = (c.observacion || '').toUpperCase();
+        let codigo = 'ERR-GEN';
+        if (obs.includes('UBICAC')) codigo = 'ERR-UBI';
+        else if (obs.includes('ESTADO')) codigo = 'ERR-EST';
+        else if (obs.includes('SOBRANTE') || obs.includes('SIN REGISTRO')) codigo = 'ERR-SOB';
+        else if (obs.includes('BIEN DE CONTROL')) codigo = 'ERR-BCO';
+        else if (obs.includes('HERRAMIENT')) codigo = 'ERR-HER';
+        else if (obs.includes('FALTANT') || obs.includes('NO ENCONTRADO')) codigo = 'ERR-FAL';
+        return {
+          fila: i + 1,
+          barra: c.barNue,
+          descripcion: (c.descripcion || '').substring(0, 60),
+          codigoError: codigo,
+          detalle: c.observacion || '—',
+        };
+      });
+
+    // Valid rows - primeras 50 conciliadas
+    this.validRows = conc
+      .filter(c => c.resultado === 'conciliado')
+      .slice(0, 50)
+      .map((c, i) => ({
+        fila: i + 1,
+        barra: c.barNue,
+        descripcion: (c.descripcion || '').substring(0, 60),
+        ubicacion: (c.ubicacionFisica || '').substring(0, 40),
+        centroCosto: '',
+      }));
+  }
 }

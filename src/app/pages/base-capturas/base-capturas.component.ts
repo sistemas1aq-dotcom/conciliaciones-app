@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivoFijoService } from '../../services/activo-fijo.service';
 
 interface Captura {
   id: number;
@@ -127,37 +128,49 @@ export class BaseCapturasComponent implements OnInit {
   totalPages = 1;
   pages: number[] = [];
 
-  private usuarios = ['jgarcia', 'mtorres', 'alopez', 'cramirez', 'lflores'];
-  private sedes = ['Planta Principal', 'Oficinas Admin', 'Almacen Central', 'Fundicion'];
-  private ubicaciones = ['Gerencia', 'Produccion H1', 'Laboratorio', 'Almacen MP', 'TI', 'Contabilidad', 'RRHH', 'Mantenimiento'];
-  private catalogos = ['Eq. Computo', 'Mobiliario', 'Maquinaria', 'Vehiculo', 'Herramienta', 'Eq. Lab'];
-  private responsables = ['C. Mendoza', 'R. Huaman', 'P. Quispe', 'M. Flores', 'L. Rodriguez', 'A. Castillo'];
-  private motivos = ['', '', '', 'Barra duplicada', '', 'Ubicacion no encontrada', '', '', 'Serie ya registrada', ''];
+  private usuarios = ['equipo.aquarius', 'inv.garcia', 'inv.torres', 'inv.lopez', 'inv.ramirez'];
+
+  constructor(private svc: ActivoFijoService) {}
 
   ngOnInit() {
-    this.generateMockData();
+    this.generateFromRealData();
     this.applyFilter();
   }
 
-  generateMockData() {
-    this.allData = Array.from({ length: 24 }, (_, i) => {
-      const hasError = i % 7 === 3;
-      const isPending = i % 9 === 5;
+  generateFromRealData() {
+    // Toma los primeros activos reales y los transforma a capturas
+    const activos = this.svc.getActivosFijos().slice(0, 60);
+    const conc = this.svc.getConciliaciones();
+    const concByBarra = new Map(conc.map(c => [c.barNue, c]));
+
+    this.allData = activos.map((a, i) => {
+      const c = concByBarra.get(a.barNue);
+      let estado = 'Valido', proceso = 'Procesado', motivo = '';
+      if (c) {
+        if (c.resultado === 'sobrante' || c.resultado === 'faltante') {
+          estado = 'Error'; proceso = 'Rechazado'; motivo = c.observacion;
+        } else if (c.resultado === 'discrepancia') {
+          estado = 'Pendiente'; proceso = 'En cola'; motivo = c.observacion;
+        }
+      }
+      const dia = (i % 20) + 1;
+      const hora = 8 + (i % 10);
+      const min = (i * 7) % 60;
       return {
         id: i + 1,
         usuario: this.usuarios[i % this.usuarios.length],
-        fechaHora: `2026-04-${String(1 + (i % 14)).padStart(2, '0')} ${String(8 + (i % 10)).padStart(2, '0')}:${String(i * 7 % 60).padStart(2, '0')}`,
-        barra: `AF-${String(i + 1).padStart(6, '0')}`,
-        empresa: '509567',
-        sede: this.sedes[i % this.sedes.length],
-        ubicacion: this.ubicaciones[i % this.ubicaciones.length],
-        centroCosto: `CC-${String((i % 9 + 1) * 100)}`,
-        responsable: this.responsables[i % this.responsables.length],
-        catalogo: this.catalogos[i % this.catalogos.length],
-        serie: `SN${String(Math.random()).substring(2, 12)}`,
-        estado: hasError ? 'Error' : (isPending ? 'Pendiente' : 'Valido'),
-        proceso: hasError ? 'Rechazado' : (isPending ? 'En cola' : 'Procesado'),
-        motivo: hasError ? this.motivos.filter(m => m)[i % this.motivos.filter(m => m).length] : '',
+        fechaHora: `2025-06-${String(dia).padStart(2, '0')} ${String(hora).padStart(2, '0')}:${String(min).padStart(2, '0')}`,
+        barra: a.barNue,
+        empresa: a.codEmpresa || 'EMPAFRUT',
+        sede: (a.ubicacion || '—').split(' - ')[0].substring(0, 25),
+        ubicacion: (a.ubicacion || '—').substring(0, 40),
+        centroCosto: a.centroCosto || '—',
+        responsable: a.responsable || '—',
+        catalogo: (a.catDescripcion || '—').substring(0, 30),
+        serie: a.serie || '—',
+        estado,
+        proceso,
+        motivo,
       };
     });
   }

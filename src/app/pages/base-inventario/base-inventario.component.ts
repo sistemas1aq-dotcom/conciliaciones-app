@@ -69,11 +69,12 @@ import { ActivoFijoService } from '../../services/activo-fijo.service';
                   <td class="px-3 py-2.5 font-mono text-xs">{{ item.serie }}</td>
                   <td class="px-3 py-2.5 text-center">
                     <span class="inline-flex px-1.5 py-0.5 rounded text-xs font-bold"
-                      [class]="item.estadoConservacion === 'NU' ? 'bg-blue-100 text-blue-800' :
-                               item.estadoConservacion === 'BU' ? 'bg-green-100 text-green-800' :
-                               item.estadoConservacion === 'RE' ? 'bg-yellow-100 text-yellow-800' :
-                               item.estadoConservacion === 'MA' ? 'bg-red-100 text-red-800' :
-                               item.estadoConservacion === 'OP' ? 'bg-emerald-100 text-emerald-800' :
+                      [class]="item.estadoConservacion === 'BO' ? 'bg-green-100 text-green-800' :
+                               item.estadoConservacion === 'BI' ? 'bg-emerald-100 text-emerald-800' :
+                               item.estadoConservacion === 'RO' ? 'bg-yellow-100 text-yellow-800' :
+                               item.estadoConservacion === 'RI' ? 'bg-amber-100 text-amber-800' :
+                               item.estadoConservacion === 'MO' ? 'bg-orange-100 text-orange-800' :
+                               item.estadoConservacion === 'MI' ? 'bg-red-100 text-red-800' :
                                'bg-gray-100 text-gray-800'">{{ item.estadoConservacion }}</span>
                   </td>
                   <td class="px-3 py-2.5 text-xs">{{ item.empresa }}</td>
@@ -205,7 +206,7 @@ export class BaseInventarioComponent implements OnInit {
   form: ActivoFijo = {
     id: 0, barNue: '', codEmpresa: '', fecLectura: '', ubicacion: '', centroCosto: '',
     responsable: '', catDescripcion: '', marca: '', modelo: '', serie: '',
-    estadoConservacion: '', empresa: 'AQUARIUS', observaciones: '', imagen: null,
+    estadoConservacion: '', empresa: 'EMPAFRUT', observaciones: '', imagen: null,
     creacion: new Date().toISOString().split('T')[0], inventariador: '',
   };
 
@@ -247,7 +248,7 @@ export class BaseInventarioComponent implements OnInit {
     this.form = {
       id: 0, barNue: '', codEmpresa: '', fecLectura: '', ubicacion: '', centroCosto: '',
       responsable: '', catDescripcion: '', marca: '', modelo: '', serie: '',
-      estadoConservacion: '', empresa: 'AQUARIUS', observaciones: '', imagen: null,
+      estadoConservacion: '', empresa: 'EMPAFRUT', observaciones: '', imagen: null,
       creacion: new Date().toISOString().split('T')[0], inventariador: '',
     };
     this.showModal = true;
