@@ -11,8 +11,10 @@ git add -A
 echo Creando commit...
 git commit -m "data: cargar activos reales EMPAFRUT (3137 fisicos / 2308 contables)"
 
-echo Haciendo push a origin main...
-git push origin main
+echo Haciendo push a origin (rama actual)...
+for /f "tokens=*" %%b in ('git rev-parse --abbrev-ref HEAD') do set BRANCH=%%b
+echo   Rama: %BRANCH%
+git push origin %BRANCH%
 
 echo.
 echo Push completado. Vercel desplegara automaticamente en ~1-2 minutos.

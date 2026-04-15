@@ -21,8 +21,9 @@ git commit -m "data: cargar activos reales EMPAFRUT (3137 físicos / 2308 contab
 - Script reproducible: BD EXCEL/generar_mock.py
 - Datos grandes en JSON + resolveJsonModule en tsconfig" || echo "  (sin cambios para commitear)"
 
-echo "→ Haciendo push a origin main..."
-git push origin main
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+echo "→ Haciendo push a origin $BRANCH..."
+git push origin "$BRANCH"
 
 echo ""
 echo "✓ Push completado. Vercel desplegará automáticamente en ~1-2 minutos."
