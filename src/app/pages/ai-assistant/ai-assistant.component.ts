@@ -2,7 +2,7 @@ import { Component, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef, 
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { AiService } from '../../services/ai.service';
-import { MensajeChat } from '../../models/conciliacion.model';
+import { MensajeChat } from '../../models/activo-fijo.model';
 
 @Component({
   selector: 'app-ai-assistant',
