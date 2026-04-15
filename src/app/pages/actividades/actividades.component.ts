@@ -149,7 +149,7 @@ export class ActividadesComponent implements OnInit {
   formFinalizada = false;
   editing = false;
   currentPage = 1;
-  pageSize = 10;
+  pageSize = 8;
   totalPages = 1;
   pages: number[] = [];
 

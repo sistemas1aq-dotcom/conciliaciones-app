@@ -198,7 +198,7 @@ export class BaseInventarioComponent implements OnInit {
   searchTerm = '';
   showModal = false;
   currentPage = 1;
-  pageSize = 15;
+  pageSize = 8;
   totalPages = 1;
   pages: number[] = [];
 

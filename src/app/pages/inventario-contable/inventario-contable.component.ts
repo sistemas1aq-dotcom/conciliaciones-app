@@ -94,7 +94,7 @@ export class InventarioContableComponent implements OnInit {
   paginatedData: InventarioContable[] = [];
   searchTerm = '';
   currentPage = 1;
-  pageSize = 15;
+  pageSize = 8;
   totalPages = 1;
   pages: number[] = [];
 

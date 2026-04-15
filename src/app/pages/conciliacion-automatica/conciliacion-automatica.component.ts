@@ -156,7 +156,7 @@ export class ConciliacionAutomaticaComponent implements OnInit {
   porcentajeConciliacion = 0;
 
   paginaActual = 1;
-  porPagina = 15;
+  porPagina = 8;
 
   constructor(private activoService: ActivoFijoService) {}
 

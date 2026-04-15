@@ -278,7 +278,7 @@ export class MaestroCrudComponent implements OnInit, OnChanges {
   @Input() columnas: ColumnaDef[] = [];
   @Input() datos: any[] = [];
   @Input() campos: CampoDef[] = [];
-  @Input() pageSize = 10;
+  @Input() pageSize = 8;
 
   @Output() onSave = new EventEmitter<{ item: any; esNuevo: boolean }>();
   @Output() onDelete = new EventEmitter<any>();

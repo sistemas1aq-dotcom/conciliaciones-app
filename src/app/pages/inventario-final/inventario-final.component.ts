@@ -159,7 +159,7 @@ export class InventarioFinalComponent implements OnInit {
   filas: FilaInventarioFinal[] = [];
   filasPaginadas: FilaInventarioFinal[] = [];
   paginaActual = 1;
-  porPagina = 15;
+  porPagina = 8;
 
   constructor(private activoService: ActivoFijoService) {}
 

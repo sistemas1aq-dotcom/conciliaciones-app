@@ -30,6 +30,12 @@ import { AuthService } from './services/auth.service';
           <main class="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6">
             <router-outlet />
           </main>
+          <footer class="shrink-0 bg-[#1a3a5f] text-white py-2 px-4 text-center text-[11px] flex items-center justify-center gap-1.5">
+            <span class="font-semibold">Fixora Aquarius</span>
+            <span class="opacity-60">—</span>
+            <span class="opacity-80">Powered by Aquarius Consulting</span>
+            <span class="opacity-60">&copy; 2026</span>
+          </footer>
         </div>
 
         <!-- Help overlay -->

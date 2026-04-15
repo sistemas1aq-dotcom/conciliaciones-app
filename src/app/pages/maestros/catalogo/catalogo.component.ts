@@ -134,7 +134,7 @@ export class CatalogoComponent implements OnInit {
   showModal = false;
   editing = false;
   currentPage = 1;
-  pageSize = 10;
+  pageSize = 8;
   totalPages = 1;
   pages: number[] = [];
 

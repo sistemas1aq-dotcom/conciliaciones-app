@@ -123,7 +123,7 @@ export class BaseCapturasComponent implements OnInit {
   filteredData: Captura[] = [];
   paginatedData: Captura[] = [];
   currentPage = 1;
-  pageSize = 15;
+  pageSize = 8;
   totalPages = 1;
   pages: number[] = [];
 
