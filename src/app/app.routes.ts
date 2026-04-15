@@ -24,14 +24,20 @@ export const routes: Routes = [
   { path: 'inventario/base-capturas', loadComponent: () => import('./pages/base-capturas/base-capturas.component').then(m => m.BaseCapturasComponent), canActivate: [authGuard] },
   { path: 'inventario/procesar-depurar', loadComponent: () => import('./pages/procesar-depurar/procesar-depurar.component').then(m => m.ProcesarDepurarComponent), canActivate: [authGuard] },
   { path: 'inventario/importacion', loadComponent: () => import('./pages/placeholder/placeholder.component').then(m => m.PlaceholderComponent), canActivate: [authGuard], data: { titulo: 'Importación' } },
-  { path: 'inventario/inventario-final', loadComponent: () => import('./pages/placeholder/placeholder.component').then(m => m.PlaceholderComponent), canActivate: [authGuard], data: { titulo: 'Inventario Final' } },
-  { path: 'inventario/registro-fotografico', loadComponent: () => import('./pages/placeholder/placeholder.component').then(m => m.PlaceholderComponent), canActivate: [authGuard], data: { titulo: 'Registro Fotográfico' } },
+  { path: 'inventario/inventario-final', loadComponent: () => import('./pages/inventario-final/inventario-final.component').then(m => m.InventarioFinalComponent), canActivate: [authGuard] },
+  { path: 'inventario/registro-fotografico', loadComponent: () => import('./pages/registro-fotografico/registro-fotografico.component').then(m => m.RegistroFotograficoComponent), canActivate: [authGuard] },
+
+  // Procesos Contables
+  { path: 'procesos/conciliacion-automatica', loadComponent: () => import('./pages/conciliacion-automatica/conciliacion-automatica.component').then(m => m.ConciliacionAutomaticaComponent), canActivate: [authGuard] },
+  { path: 'procesos/conciliacion-manual', loadComponent: () => import('./pages/conciliacion-manual/conciliacion-manual.component').then(m => m.ConciliacionManualComponent), canActivate: [authGuard] },
+
+  // Reportes
+  { path: 'reportes/ficha-tecnica', loadComponent: () => import('./pages/ficha-tecnica/ficha-tecnica.component').then(m => m.FichaTecnicaComponent), canActivate: [authGuard] },
+  { path: 'reportes/inventario-valorizado', loadComponent: () => import('./pages/reportes/inventario-valorizado/inventario-valorizado.component').then(m => m.InventarioValorizadoComponent), canActivate: [authGuard] },
+  { path: 'reportes/inventario-catalogo', loadComponent: () => import('./pages/reportes/inventario-catalogo/inventario-catalogo.component').then(m => m.InventarioCatalogoComponent), canActivate: [authGuard] },
 
   // IA
   { path: 'ai-assistant', loadComponent: () => import('./pages/ai-assistant/ai-assistant.component').then(m => m.AiAssistantComponent), canActivate: [authGuard] },
-
-  // Conciliación
-  { path: 'conciliaciones', loadComponent: () => import('./pages/conciliaciones/conciliaciones.component').then(m => m.ConciliacionesComponent), canActivate: [authGuard] },
 
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: '**', redirectTo: 'dashboard' },
